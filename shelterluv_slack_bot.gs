@@ -30,7 +30,7 @@
  * Change these two values to fit your shelter. No coding knowledge
  * needed beyond editing the text between the quotes below.
  */
-const TARGET_SPECIES = 'Cat';   // e.g. 'Cat', 'Dog', 'Rabbit'. Leave as '' (empty) to announce every species.
+const TARGET_SPECIES = '';   // e.g. 'Cat', 'Dog', 'Rabbit'. Leave as '' (empty) to announce every species.
 const POLL_INTERVAL_MINUTES = 15; // How often the bot checks Shelterluv for new adoptions, in minutes.
                                    // Google Apps Script only allows 1, 5, 10, 15, or 30 here.
 /** =================================================== */
