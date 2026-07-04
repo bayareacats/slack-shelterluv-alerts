@@ -1,5 +1,29 @@
 /**
- * Shelterluv -> Slack "cat adopted" bot
+ * Shelterluv -> Slack "cat adopted" bot (events-based)
+ * -----------------------------------------------------
+ * Uses the Shelterluv EVENTS API (not the animal's Status field) to
+ * determine true adoptions. Status fields like "Healthy in Home" are
+ * ambiguous (adoption, return-to-owner, return-to-finder, etc. can all
+ * land on the same status), but each event's `Type` is unambiguous:
+ * Outcome.Adoption means an adoption happened.
+ *
+ * This posts once for EVERY Outcome.Adoption event,
+ * deduped only by (animalId, event time). It deliberately does NOT
+ * check whether that adoption is still the animal's "current" status.
+ * That means if a cat is adopted, later returned, and adopted again,
+ * you'll get a Slack post both times, and each is a real adoption event
+ * worth announcing.
+ *
+ * SETUP
+ * 1. Go to script.google.com, create a new project, paste this entire file in.
+ * 2. Project Settings > Script Properties > add:
+ *      SHELTERLUV_API_KEY   = your Shelterluv API key
+ *      SLACK_WEBHOOK_URL    = your Slack Incoming Webhook URL
+ * 3. Run `checkForAdoptions` once manually. On this first run it just
+ *    establishes the "now" cursor. Then run
+ *    `installTrigger` once to schedule checking for adoptions every 15 minutes.
+ *
+ * Live-only, no backfill: only events going forward are ever considered.
  */
 
 /** ================= CONFIGURATION =================
@@ -13,14 +37,6 @@ const POLL_INTERVAL_MINUTES = 15; // How often the bot checks Shelterluv for new
 
 const SHELTERLUV_BASE = 'https://www.shelterluv.com/api/v1';
 const MAX_EVENT_PAGES_PER_RUN = 20; // safety cap: 20 pages x 100 = 2,000 events/run
-
-// Intake event types that indicate a previously-adopted animal has come
-// back to the shelter. Logged internally only -- never posted to Slack.
-const RETURN_INTAKE_TYPES = new Set([
-  'Intake.AdoptionReturn',
-  'Intake.OwnerSurrender',
-  'Intake.FosterReturn'
-]);
 
 function getProp_(key) {
   const v = PropertiesService.getScriptProperties().getProperty(key);
@@ -83,38 +99,6 @@ function isPlaceholderPhoto_(url) {
   return /\/default_[a-z0-9_-]+\.(png|jpe?g|gif)$/i.test(String(url));
 }
 
-/** Finds (or creates, on first run) the internal "returns" log sheet. */
-function getReturnLogSheet_() {
-  const props = PropertiesService.getScriptProperties();
-  const existingId = props.getProperty('RETURN_LOG_SHEET_ID');
-
-  if (existingId) {
-    try {
-      return SpreadsheetApp.openById(existingId).getSheets()[0];
-    } catch (e) {
-      // fall through and recreate if it was deleted/moved
-    }
-  }
-
-  const ss = SpreadsheetApp.create('Shelterluv Adoption Return Log');
-  const sheet = ss.getSheets()[0];
-  sheet.appendRow(['Logged At', 'Animal ID', 'Animal Name', 'Event Type', 'Subtype', 'Event Time']);
-  props.setProperty('RETURN_LOG_SHEET_ID', ss.getId());
-  Logger.log('Created return log sheet: ' + ss.getUrl());
-  return sheet;
-}
-
-function logReturnEvent_(sheet, animal, event) {
-  sheet.appendRow([
-    new Date(),
-    animal.ID ?? animal.Id ?? animal.internal_id ?? '',
-    animal.Name || '',
-    event.Type,
-    event.Subtype || '',
-    new Date(Number(event.Time) * 1000)
-  ]);
-}
-
 /** ---- Main entry point, called on a schedule ---- */
 function checkForAdoptions() {
   const props = PropertiesService.getScriptProperties();
@@ -164,27 +148,6 @@ function checkForAdoptions() {
   props.setProperty('POSTED_EVENT_KEYS', JSON.stringify(trimmed));
 
   Logger.log(`Posted ${postedCount} confirmed adoption(s) this run.`);
-
-  // ---- Internal-only: log returns of previously-announced adoptions ----
-  // (Built from postedEventKeys, which now includes both prior runs' and
-  // this run's adoption keys, so it catches returns weeks/months later.)
-  const adoptedAnimalIds = new Set(
-    [...postedEventKeys].map(k => k.split(':')[0])
-  );
-
-  const returnEvents = recentEvents.filter(
-    e => RETURN_INTAKE_TYPES.has(e.Type) && adoptedAnimalIds.has(getAnimalIdFromEvent_(e))
-  );
-
-  if (returnEvents.length) {
-    const sheet = getReturnLogSheet_();
-    for (const event of returnEvents) {
-      const animalId = getAnimalIdFromEvent_(event);
-      const animal = fetchAnimal_(apiKey, animalId);
-      logReturnEvent_(sheet, animal, event);
-    }
-    Logger.log(`Logged ${returnEvents.length} return(s) to internal sheet (no Slack post).`);
-  }
 }
 
 function postAdoptionToSlack(animal, event, webhookUrl) {
