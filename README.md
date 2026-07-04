@@ -85,7 +85,7 @@ Your key and URL are kept separate from the code itself, so they never get accid
 3. Click **Run** (▶).
 4. The first time you do this, Google will ask you to **authorize** the script. Click through the prompts:
    - "Review permissions" → choose your Google account
-5. Once it finishes, click **Executions** (clock icon) in the left sidebar to see the log. It should say something like "Fetched 0 events... Posted 0 adoption(s)." That's expected — this first run just starts the clock; it doesn't look at anything that happened before now.
+5. Once it finishes, click **Executions** (clock icon) in the left sidebar to see the log. It should say something like "Fetched 0 events... Posted 0 adoption(s)." That's expected as the first run just starts the clock; it doesn't look at anything that happened before now.
 
 ---
 
