@@ -5,7 +5,7 @@ A free bot that posts a Slack message every time an animal is adopted, using dat
 - **No cost.** It runs on Google Apps Script, which is free with any Google account.
 - **No coding experience required.** Copy and paste some text into a couple of forms & you're good to go!
 - **Only announces real adoptions.** Distinguishes between "this animal was adopted" and similar-looking situations like a lost pet being reclaimed by its owner (see [How it works](#how-it-works) if you're curious).
-- **All animals by default.** Out of the box it announces all animal adoptions — see [Customizing it](#customizing-it) if you want only cats, dogs, rabbits, or every species included.
+- **All animals by default.** Out of the box it announces all animal adoptions; see [Customizing it](#customizing-it) if you want only cats, dogs, rabbits, or every species included.
 
 <img width="382" height="428" alt="image" src="https://github.com/user-attachments/assets/985108c0-776f-42c0-b893-c7dada3e0464" />
 
@@ -30,7 +30,7 @@ A free bot that posts a Slack message every time an animal is adopted, using dat
    - **Name of the Integration:** e.g. `Slack Adoption Announcer`
    - **Description/Purpose of the Integration:** e.g. *"Automated Slack notification posted when an animal is adopted, using adoption event data from the Shelterluv API."*
    - **What type(s) of data does your API integration need access to?** check **Animals** and **Events** only.
-5. Submit the form. Shelterluv will follow up (by email, typically) with your API key — this may take a bit, since a person on their end has to issue it.
+5. Submit the form. Shelterluv will follow up (by email, typically) with your API key. This may take a bit, since a person from Shelterluv has to issue it.
 6. Save the key somewhere temporary (a notes app, a draft email to yourself) as you'll paste it in later, in Step 4.
 
 ---
@@ -45,7 +45,7 @@ This gives the bot a private address it can send messages to.
 4. In the left sidebar, click **Incoming Webhooks**.
 5. Toggle **Activate Incoming Webhooks** to On.
 6. Click **Add New Webhook to Workspace**, then pick the channel where you want adoption announcements to appear.
-7. Click **Allow**. You'll now see a **Webhook URL** — it looks like `https://hooks.slack.com/services/T00/B00/xxxxxxxx`.
+7. Click **Allow**. You'll now see a **Webhook URL**, it looks like `https://hooks.slack.com/services/T00/B00/xxxxxxxx`.
 8. Copy that URL and save it alongside your Shelterluv API key.
 
 ---
@@ -93,7 +93,7 @@ Your key and URL are kept separate from the code itself, so they never get accid
 
 1. In the function dropdown at the top, select **`installTrigger`**.
 2. Click **Run** (▶).
-3. Check the **Triggers** (alarm clock icon) in the left sidebar — you should now see `checkForAdoptions` listed, set to run automatically every 15 minutes.
+3. Check the **Triggers** (alarm clock icon) in the left sidebar, you should now see `checkForAdoptions` listed, set to run automatically every 15 minutes.
 
 ---
 
@@ -105,7 +105,7 @@ All of the following are edited directly in the code, near the top of the file, 
 - **Change how often it checks:** edit `POLL_INTERVAL_MINUTES`. Google only allows the values 1, 5, 10, 15, or 30.
 - **Change the message wording:** find the `postAdoptionToSlack` function and edit the text inside the `text:` line.
 
-After making a change, save the file (Ctrl/Cmd+S). You do **not** need to re-run `installTrigger` unless you changed `POLL_INTERVAL_MINUTES` — any other edit takes effect automatically the next time the trigger fires.
+After making a change, save the file (Ctrl/Cmd+S). You do **not** need to re-run `installTrigger` unless you changed `POLL_INTERVAL_MINUTES`, any other edit takes effect automatically the next time the trigger fires.
 
 ---
 
